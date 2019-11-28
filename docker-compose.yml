@@ -1,0 +1,48 @@
+version: "3.7"
+
+services:
+  apache:
+    build: 
+      context: ./bin/apache
+      dockerfile: Dockerfile
+      args:
+        developer_uid: ${DEVELOPER_UID}
+    container_name: 'dev-apache'
+    restart: 'always'
+    ports:
+      - "80:80"
+    # links: 
+    #   - mysql
+    volumes: 
+      - ${DOCUMENT_ROOT}:/var/www/html
+      - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+      - ${APACHE_CONFIG_DIR}/sites-enabled:/etc/apache2/sites-enabled
+      - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+    environment:
+      APACHE_RUN_USER: developer
+      APACHE_RUN_GROUP: developer
+  mysql:
+    build: ./bin/mysql
+    container_name: 'dev-mysql'
+    restart: 'always'
+    ports:
+      - "3306:3306"
+    volumes: 
+      - ${MYSQL_DATA_DIR-./data}:/var/lib/mysql
+      - ${MYSQL_LOG_DIR-./logs}:/var/log/mysql
+      - ${MYSQL_CONFIG_DIR-./config}:/etc/mysql/conf.d 
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  # adminer:
+  #   image: adminer
+  #   restart: 'always'
+  #   container_name: 'mm-adminer'
+  #   ports:
+  #     - '8080:8080'
+  #   links:
+  #     - mysql
+  #   environment:
+  #     ADMINER_DEFAULT_SERVER: 'mysql'
